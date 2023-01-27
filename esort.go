@@ -1,6 +1,7 @@
 // Package esort provides mechanisms for sorting user-defined types according
 // to compound criteria extensibly.  It is mutually compatible with package sort
-// from the standard library.
+// from the standard library.  The package name comes from the combination of
+// the words "extensible" and "sort" and shortened as "esort."
 //
 // Consider a case of sorting a user-defined type of a Person:
 //
@@ -127,6 +128,7 @@ package esort
 // Things to improve in the design:
 //
 // 1. Eliminate the need to panic at all on the case of empty instructions.
+// 2. Provide a benchmark against hand-written implementations.
 
 import (
 	"bytes"
@@ -159,6 +161,9 @@ const (
 	// Desc sorts the results in descending order.
 	Desc
 )
+
+// New creates a Sorter.
+func New[T any]() *Sorter[T] { return new(Sorter[T]) }
 
 // addInst copies the existing sorting program and adds a new instruction to
 // the copy.  The copy semantic is used to keep each Sorter safe for use in
@@ -333,19 +338,19 @@ var errNoProgram = errors.New("esort: no sorting instructions provided")
 // [sort.Interface.Less] and related APIs.
 func (s *Sorter[T]) Less(l, r T) bool {
 	for i, f := range s.prog {
-		if f.Dir == Asc {
+		l, r := l, r // Reset original ordering upon more than one cycle.
+		if f.Dir == Desc {
 			r, l = l, r
 		}
 		switch i {
 		case len(s.prog) - 1:
 			return f.Func(l, r)
 		default:
-			if f.Func(r, l) {
+			if f.Func(l, r) {
 				return true
-			} else if f.Func(l, r) {
+			} else if f.Func(r, l) {
 				return false
 			}
-			continue
 		}
 	}
 	panic(errNoProgram)

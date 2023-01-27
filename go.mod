@@ -1,5 +1,8 @@
-module github.com/matttproud/esort
+module esort
 
 go 1.19
 
-require golang.org/x/exp v0.0.0-20230127140709-cafedaf64729
+require (
+	github.com/google/go-cmp v0.5.9
+	golang.org/x/exp v0.0.0-20230125214544-b3c2aaf6208d
+)
