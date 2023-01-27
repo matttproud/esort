@@ -2,6 +2,7 @@ package esort
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -366,5 +367,96 @@ func TestEmpty(t *testing.T) {
 	slices.SortFunc(data, sorter.Less)
 	if got, want := err, errNoProgram; !errors.Is(got, want) {
 		t.Errorf("after empty sorter sort panic = %v, want %v", got, want)
+	}
+}
+
+var benchData = []Data{
+	{Int: 0, Uint: 3},
+	{Int: 1, Uint: 1},
+	{Int: 0, Uint: 0},
+	{Int: 0, Uint: 1},
+	{Int: 0, Uint: 2},
+	{Int: 0, Uint: 3},
+	{Int: 2, Uint: 1},
+	{Int: 3, Uint: 0},
+	{Int: 1, Uint: 0},
+}
+
+func Benchmark(b *testing.B) {
+	for _, i := range []int{10, 100, 1000} {
+		b.Run(fmt.Sprint(i), func(b *testing.B) {
+			bench := make([][]Data, 0, b.N)
+			var data []Data
+			for j := 0; j < i; j++ {
+				data = append(data, benchData...)
+			}
+			for j := 0; j < b.N; j++ {
+				bench = append(bench, data)
+			}
+			sorter := New[Data]().
+				ByInt(func(d Data) int { return d.Int }, Desc).
+				ByUint(func(d Data) uint { return d.Uint }, Asc)
+			b.ResetTimer()
+			b.ReportAllocs()
+			for j := 0; j < b.N; j++ {
+				slices.SortFunc(bench[j], sorter.Less)
+			}
+		})
+	}
+}
+
+func BenchmarkBest(b *testing.B) {
+	for _, i := range []int{10, 100, 1000} {
+		b.Run(fmt.Sprint(i), func(b *testing.B) {
+			bench := make([][]Data, 0, b.N)
+			var data []Data
+			for j := 0; j < i; j++ {
+				data = append(data, benchData...)
+			}
+			for j := 0; j < b.N; j++ {
+				bench = append(bench, data)
+			}
+			sorter := func(l, r Data) bool {
+				if l.Int != r.Int {
+					return l.Int > r.Int
+				}
+				return l.Uint < r.Uint
+			}
+
+			b.ResetTimer()
+			b.ReportAllocs()
+			for j := 0; j < b.N; j++ {
+				slices.SortFunc(bench[j], sorter)
+			}
+		})
+	}
+}
+
+func BenchmarkNaive(b *testing.B) {
+	for _, i := range []int{10, 100, 1000} {
+		b.Run(fmt.Sprint(i), func(b *testing.B) {
+			bench := make([][]Data, 0, b.N)
+			var data []Data
+			for j := 0; j < i; j++ {
+				data = append(data, benchData...)
+			}
+			for j := 0; j < b.N; j++ {
+				bench = append(bench, data)
+			}
+			sorter := func(l, r Data) bool {
+				if l.Int > r.Int {
+					return true
+				} else if r.Int > l.Int {
+					return false
+				}
+				return l.Uint < r.Uint
+			}
+
+			b.ResetTimer()
+			b.ReportAllocs()
+			for j := 0; j < b.N; j++ {
+				slices.SortFunc(bench[j], sorter)
+			}
+		})
 	}
 }

@@ -121,6 +121,12 @@
 //	sorter := esort.New().
 //		ByFunc(p.GivenName, esort.Asc)
 //
+// # Performance
+//
+// A hand-implemented [sort.Interface.Less] function readily beats a Sorter.
+// As implemented today, a Sorter with a simple double-compound sort criteria
+// takes approximately 5-7x the time of a hand-written Less.
+//
 // [method expressions]: https://go.dev/ref/spec#Method_expressions
 // [getters]: https://google.github.io/styleguide/go/decisions.html#getters
 package esort
@@ -128,7 +134,6 @@ package esort
 // Things to improve in the design:
 //
 // 1. Eliminate the need to panic at all on the case of empty instructions.
-// 2. Provide a benchmark against hand-written implementations.
 
 import (
 	"bytes"
