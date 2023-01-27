@@ -2,15 +2,15 @@
 // to compound criteria extensibly.  It is mutually compatible with package sort
 // from the standard library.
 //
-// Consider a case of sorting a user-defined type of a `Person`:
+// Consider a case of sorting a user-defined type of a Person:
 //
 //	type Person struct {
 //		GivenName string
 //		ID int
 //	}
 //
-// Suppose `GivenName` is to be sorted in descending order and ties of the
-// `GivenName` by `ID` in ascending order:
+// Suppose GivenName is to be sorted in descending order and ties of the
+// GivenName by ID in ascending order:
 //
 //	sorter := esort.New().
 //		ByString(func(p Person) string { return p.GivenName }, esort.Desc).
@@ -28,12 +28,12 @@
 //
 // # Sorting Instructions
 //
-// The methods prefixed with `By` copy the current sorting rule set and add a
+// The methods prefixed with By copy the current sorting rule set and add a
 // new instruction to the copy.  Each rule set is evaluated according to the
 // order in which the instructions were added to the [Sorter], so earlier
 // sorting rules carry higher sorting weight than the previous.
 //
-// A [Sorter] without rules is invalid and panics upon use.
+// A Sorter without rules is invalid and panics upon use.
 //
 // Due to the copy on write semantics of the instructions API, rule sets can be
 // templatized:
@@ -46,8 +46,8 @@
 //
 // # Efficiency
 //
-// Prefer using the simple, scalar `By` methods for comparing individual fields
-// versus encoding their logic in the [ByFunc] method.  These individual
+// Prefer using the simple, scalar By methods for comparing individual fields
+// versus encoding their logic in the [Sorter.ByFunc] method.  These individual
 // methods are implemented efficiently.
 //
 // Prefer:
@@ -69,15 +69,15 @@
 // Prefer defining the sorters as top-level variables if they have a static
 // sorting basis.  They will allocate zero memory during later program
 // runtime — provided of course no user-defined functions registered with
-// [ByFunc] do.
+// ByFunc do.
 //
 // # User-Defined Sorting Functions
 //
-// The [ByFunc] method enables types to be sorted by user-defined functions.
-// The [ByFunc] method follows the same logic as the other instructions; it is
+// The ByFunc method enables types to be sorted by user-defined functions.
+// The ByFunc method follows the same logic as the other instructions; it is
 // appended to the rule set and evaluated accordingly.
 //
-// If the function provided to [ByFunc] compares only one sorting basis, it may
+// If the function provided to ByFunc compares only one sorting basis, it may
 // be implemented in a naive fashion whereby it only compares one side of the
 // basis.  Consider a data-transmission object (DTO)
 //
@@ -88,7 +88,7 @@
 //	sorter := esort.New().
 //		ByFunc(lessDTO, esort.Asc)
 //
-// The function `lessDTO` needn't consider the inverse case:
+// The function lessDTO needn't consider the inverse case:
 //
 //	func lessDTO(l, r *dto.SomeData) bool {
 //		if l.GetField() < r.GetField() {
@@ -112,13 +112,16 @@
 //	sorter := esort.New().
 //		ByFunc(name, esort.Asc)
 //
-// And method expressions on the types, though consider whether [getters] are
+// And [method expressions] on the types, though consider whether [getters] are
 // even appropriate for the API first:
 //
 //	func (p Person) GivenName string { return p.givenName }
 //
 //	sorter := esort.New().
 //		ByFunc(p.GivenName, esort.Asc)
+//
+// [method expressions]: https://go.dev/ref/spec#Method_expressions
+// [getters]: https://google.github.io/styleguide/go/decisions.html#getters
 package esort
 
 // Things to improve in the design:
@@ -289,7 +292,7 @@ func (s *Sorter[T]) ByBytes(f func(T) []byte, d Dir) *Sorter[T] {
 // SortFunc sorts the data according to an arbitrary function.
 //
 // SortFunc mimics a [sort.Interface.Less] function.  Functions that sort by
-// one criterion may return a simple `l` before `r` check.  Consider:
+// one criterion may return a simple l before r check.  Consider:
 //
 //	sorter := esort.New().
 //		ByFunc(func(l, r T) bool {
@@ -297,7 +300,7 @@ func (s *Sorter[T]) ByBytes(f func(T) []byte, d Dir) *Sorter[T] {
 //		})
 //
 // Functions that perform compound comparisons must perform symmetric checks
-// of `r` before `l` in order to produce sensible results:
+// of r before l in order to produce sensible results:
 //
 //	sorter := esort.New().
 //		ByFunc(func(l, r T) bool {
@@ -311,7 +314,7 @@ func (s *Sorter[T]) ByBytes(f func(T) []byte, d Dir) *Sorter[T] {
 // pre-existing instruction in a [Sorter]; otherwise inconsistent results may
 // be produced.
 //
-// Using the native `By`-prefixed functions to generate sorting rule sets is
+// Using the native By-prefixed functions to generate sorting rule sets is
 // preferable to using this API.
 type SortFunc[T any] func(l, r T) bool
 
