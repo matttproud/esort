@@ -1,4 +1,4 @@
-module esort
+module github.com/matttproud/esort
 
 go 1.19
 
